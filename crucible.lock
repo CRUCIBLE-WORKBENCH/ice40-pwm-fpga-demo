@@ -1,0 +1,48 @@
+{
+  "active_environment": "fpga-demo",
+  "environments": [
+    {
+      "name": "fpga-demo",
+      "stack": "default",
+      "tools": [
+        {
+          "artifact_id": "igny_linux-x64_icestorm_2026.04.03.0.tar.gz",
+          "checksum": "sha256:71adcaddadb6b8435b5988601152188896c02c2270ea8db86c6a85fa3a6145c5",
+          "enabled": true,
+          "name": "icestorm",
+          "platform": "linux-x86_64",
+          "source": "artifact",
+          "version": "2026.04.03"
+        },
+        {
+          "artifact_id": "igny_linux-x64_iverilog_14.0.0.0.tar.gz",
+          "checksum": "sha256:ea8c88407f03105163c70d03bba56a68b527188c7cf9437aa009048e74182216",
+          "enabled": true,
+          "name": "iverilog",
+          "platform": "linux-x86_64",
+          "source": "artifact",
+          "version": "14.0.0"
+        },
+        {
+          "artifact_id": "igny_linux-x64_nextpnr_0.10.0.0.tar.gz",
+          "checksum": "sha256:c8f14af7cba5085fe9809d95d0c61a4f918000083a7609e3af535a3f667d7c0c",
+          "enabled": true,
+          "name": "nextpnr",
+          "platform": "linux-x86_64",
+          "source": "artifact",
+          "version": "0.10.0"
+        },
+        {
+          "artifact_id": "igny_linux-x64_yosys_0.63.0.0.tar.gz",
+          "checksum": "sha256:aef5f741ae4e1e036dccc6eac6f9f27393c604099372180849a5c5f3b5c8224e",
+          "enabled": true,
+          "name": "yosys",
+          "platform": "linux-x86_64",
+          "source": "artifact",
+          "version": "0.63.0"
+        }
+      ]
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,7 @@
+{
+  "provider": "yosys",
+  "version": "0.63.0",
+  "file": "ice40/cells_sim.v",
+  "sha256": "b5b2bcd86c0d6eea269015aaebff1d5fb66e7ec3f7eded0bde07406e5ac99527",
+  "modification": "none"
+}

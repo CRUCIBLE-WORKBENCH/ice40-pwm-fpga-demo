@@ -1,0 +1,5 @@
+read_verilog rtl/pwm_demo.v rtl/fpga_top.v
+synth_ice40 -top fpga_top -json build/fpga.json
+check -assert
+stat
+write_verilog -noattr -noexpr build/mapped.v

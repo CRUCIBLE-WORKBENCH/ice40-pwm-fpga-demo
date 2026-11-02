@@ -1,0 +1,241 @@
+{
+  "measurement_date": "2026-11-01",
+  "project_state": "SOFTWARE VERIFIED; PHYSICAL DEPLOYMENT INCOMPLETE",
+  "target": {
+    "candidate_board": "Lattice iCEstick Evaluation Kit",
+    "device": "iCE40HX1K",
+    "package": "TQ144",
+    "clock_hz": 12000000,
+    "clock_pin": 21,
+    "led_pin": 99,
+    "led": "D1 red, FPGA drives resistor/LED to ground (active high)",
+    "board_available": false,
+    "programming_performed": false
+  },
+  "tools": {
+    "icestorm": "2026.04.03",
+    "iverilog": "14.0.0",
+    "nextpnr": "0.10.0",
+    "yosys": "0.63.0"
+  },
+  "nextpnr_version": "0.10-22-gd6b4d3ed",
+  "simulation": {
+    "rtl": {
+      "cycles": 5243400,
+      "comparisons": 5263881,
+      "whole_periods": 20481,
+      "stage_periods": [
+        [
+          0,
+          0,
+          4097
+        ],
+        [
+          1,
+          64,
+          4096
+        ],
+        [
+          2,
+          128,
+          4096
+        ],
+        [
+          3,
+          192,
+          4096
+        ],
+        [
+          4,
+          256,
+          4096
+        ]
+      ]
+    },
+    "mapped": {
+      "cycles": 5243400,
+      "comparisons": 5263881,
+      "whole_periods": 20481,
+      "stage_periods": [
+        [
+          0,
+          0,
+          4097
+        ],
+        [
+          1,
+          64,
+          4096
+        ],
+        [
+          2,
+          128,
+          4096
+        ],
+        [
+          3,
+          192,
+          4096
+        ],
+        [
+          4,
+          256,
+          4096
+        ]
+      ]
+    }
+  },
+  "core_regressions": {
+    "step_periods": [
+      1,
+      2
+    ],
+    "cycles_each": 10120,
+    "comparisons_each": 10155
+  },
+  "utilization": {
+    "ICESTORM_LC": {
+      "available": 1280,
+      "used": 47
+    },
+    "ICESTORM_PLL": {
+      "available": 1,
+      "used": 0
+    },
+    "ICESTORM_RAM": {
+      "available": 16,
+      "used": 0
+    },
+    "SB_GB": {
+      "available": 8,
+      "used": 2
+    },
+    "SB_IO": {
+      "available": 112,
+      "used": 2
+    },
+    "SB_WARMBOOT": {
+      "available": 1,
+      "used": 0
+    }
+  },
+  "synthesized_cells": {
+    "SB_DFFESR": 15,
+    "SB_LUT4": 39,
+    "SB_CARRY": 20,
+    "SB_DFFSR": 8,
+    "SB_DFFE": 3
+  },
+  "timing": {
+    "clock_constraint_mhz": 12,
+    "final_estimated_fmax_mhz": 191.35093688964844,
+    "scope": "nextpnr HX1K device model, final routed design; no measured clock or vendor signoff"
+  },
+  "pwm": {
+    "samples_per_period": 256,
+    "high_samples": [
+      0,
+      64,
+      128,
+      192,
+      256
+    ],
+    "periods_per_stage": 4096,
+    "nominal_carrier_hz": 46875.0,
+    "nominal_stage_seconds": 0.08738133333333334,
+    "nominal_sequence_seconds": 0.43690666666666667
+  },
+  "bitstream": {
+    "bytes": 32220,
+    "sha256": "8ae6ad4d6305bebea976723fc8e1bdb36367f67de3d4b8d9792a88568a162892",
+    "configuration_records": 265,
+    "decode_compare": "all logic/IO/extra-bit records match; omitted RAM initialization expands to zero",
+    "repack": "byte identical"
+  },
+  "negative_controls": {
+    "duty": "zero duty gains one sample in deliberately broken fixture; simulator exit 1",
+    "timing": "1000 MHz target rejected by final route analysis; nextpnr exit 1",
+    "configuration": "one logic configuration bit mutated, packed, decoded and rejected; observer exit 1"
+  },
+  "models": {
+    "provider": "yosys",
+    "version": "0.63.0",
+    "file": "ice40/cells_sim.v",
+    "sha256": "b5b2bcd86c0d6eea269015aaebff1d5fb66e7ec3f7eded0bde07406e5ac99527",
+    "modification": "none"
+  },
+  "sources": [
+    {
+      "title": "Lattice EB82 iCEstick Evaluation Kit User Guide",
+      "url": "https://www.latticesemi.com/view_document?document_id=50701",
+      "sha256": "7786b16bf48789416e1420d3e7015ee8be5dd52d4c04430200d509555be7fa13",
+      "locators": "LED table page 5; clock/pin-21 limitation page 16; clock-to-pin schematic pages 18/20; LED schematic page 21"
+    },
+    {
+      "title": "YosysHQ nextpnr iCEstick blinky PCF",
+      "url": "https://github.com/YosysHQ/nextpnr/blob/main/ice40/examples/blinky/blinky.pcf",
+      "pins": "clki=21; led1=99"
+    }
+  ],
+  "inputs": {
+    "identity": {
+      "evidence/board.json": "ac3fa046a07cba9042bf57fb12247e4b313258291d9c7c05b4e8409dbe81a242",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    },
+    "rtl": {
+      "rtl/pwm_demo.v": "49ef0849f4ae18a4969591a11347471c22d3050edb43c3cbedf5d546fdbe47d3",
+      "rtl/fpga_top.v": "edea36d089880517292f7603444f52fd8704008a3a7da0d94420361d0bda33cd",
+      "tests/tb_core.v": "0061e3b5fa61134bc96e6dd8b6c1f6f4855e7a9ed481ed47c8911fca2738ab5f",
+      "tests/tb_top.v": "6b584319b66938700b4be5dcc3480a7e79a02fbb2c38371519cafb8eecdd39c5",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    },
+    "synth": {
+      "rtl/pwm_demo.v": "49ef0849f4ae18a4969591a11347471c22d3050edb43c3cbedf5d546fdbe47d3",
+      "rtl/fpga_top.v": "edea36d089880517292f7603444f52fd8704008a3a7da0d94420361d0bda33cd",
+      "scripts/synthesis.ys": "fe1bfb74fb381072faec9c38ce032f89db9739e24217b15d818a98a75a6d0921",
+      "scripts/models.py": "9b0c2fda85006eb73f898681fc099801fcebd666377a933147826b28d12c5af8",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    },
+    "mapped": {
+      "build/mapped.v": "66b8bb622505f0b8f709a55169a271eac604c22b9a96a87d79e536ef93fb12cf",
+      "build/cells_sim.v": "b5b2bcd86c0d6eea269015aaebff1d5fb66e7ec3f7eded0bde07406e5ac99527",
+      "tests/tb_top.v": "6b584319b66938700b4be5dcc3480a7e79a02fbb2c38371519cafb8eecdd39c5",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    },
+    "route": {
+      "build/fpga.json": "08300aaa5fe16799be13a0ae7ed8fc8d77dc1d4f63eb734c20146eb0f87a11dc",
+      "constraints/icestick.pcf": "e9484f10288bda91f1866702baac23be35e581d1a1505b0ba7946c56080d206f",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    },
+    "pack": {
+      "build/fpga.asc": "0bfcb5792ab396f98accd488a837d345824320b863ce5b3e20ac785bf9167d1f",
+      "scripts/bitstream.py": "5fcae9f15763a2b6e55202dc2f67bc16d4631290206b968f94df812f39b211c4",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    },
+    "negative": {
+      "tests/pwm_broken.v": "200ded74386282af2fcf83bce49dfe4fc8b4f0fda5b8c2a76406dcafc68913a6",
+      "tests/tb_core.v": "0061e3b5fa61134bc96e6dd8b6c1f6f4855e7a9ed481ed47c8911fca2738ab5f",
+      "build/fpga.json": "08300aaa5fe16799be13a0ae7ed8fc8d77dc1d4f63eb734c20146eb0f87a11dc",
+      "build/fpga.asc": "0bfcb5792ab396f98accd488a837d345824320b863ce5b3e20ac785bf9167d1f",
+      "constraints/icestick.pcf": "e9484f10288bda91f1866702baac23be35e581d1a1505b0ba7946c56080d206f",
+      "scripts/mutate_configuration.py": "2c1e346999b5abb6e1638adfb58fd2acfb31095eadb7b6e3137abe1631e5da0a",
+      "scripts/bitstream.py": "5fcae9f15763a2b6e55202dc2f67bc16d4631290206b968f94df812f39b211c4",
+      "crucible.lock": "61fb40e1a59a3d3ae19e56c0c3c43013638da36dab471464899182bddd47dd2b",
+      "scripts/run.sh": "a9a7d1ea59b1ce6f354f643424698c99e2364c9445d98a5025d4540d5ce52d0e",
+      "scripts/provenance.py": "a7eaa169416283b34c2d553757a3ad138cd1f3ed03384a7057f73326b31225ef"
+    }
+  },
+  "limits": "No physical board/programmer, programming, LED/clock/reset measurement, post-route functional equivalence, SDF simulation, vendor STA/signoff or silicon observation. Full deployment gate remains unmet."
+}

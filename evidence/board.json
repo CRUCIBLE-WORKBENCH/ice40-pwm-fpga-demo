@@ -1,0 +1,24 @@
+{
+  "candidate_board": "Lattice iCEstick Evaluation Kit",
+  "device": "iCE40HX1K",
+  "package": "TQ144",
+  "clock_hz": 12000000,
+  "clock_pin": 21,
+  "led_pin": 99,
+  "led": "D1 red, FPGA drives resistor/LED to ground (active high)",
+  "board_available": false,
+  "programming_performed": false,
+  "sources": [
+    {
+      "title": "Lattice EB82 iCEstick Evaluation Kit User Guide",
+      "url": "https://www.latticesemi.com/view_document?document_id=50701",
+      "sha256": "7786b16bf48789416e1420d3e7015ee8be5dd52d4c04430200d509555be7fa13",
+      "locators": "LED table page 5; clock/pin-21 limitation page 16; clock-to-pin schematic pages 18/20; LED schematic page 21"
+    },
+    {
+      "title": "YosysHQ nextpnr iCEstick blinky PCF",
+      "url": "https://github.com/YosysHQ/nextpnr/blob/main/ice40/examples/blinky/blinky.pcf",
+      "pins": "clki=21; led1=99"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+[workspace]
+name = "fpga-demo"
+id = "fpga-demo-4f5722c8"
+environment = "fpga-demo"
+environments = [ "fpga-demo",]
+
+[workspace.metadata]
+managed = false
+created_at = "2026-10-31T21:07:52.828336+00:00"
+created_by = "crucible-core"

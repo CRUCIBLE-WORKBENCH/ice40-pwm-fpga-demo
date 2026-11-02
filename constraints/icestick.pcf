@@ -1,0 +1,4 @@
+# Candidate iCEstick HX1K-TQ144: official nextpnr blinky PCF uses 21/99.
+# 12 MHz oscillator -> clk; active-high red user LED D1 -> led.
+set_io clk 21
+set_io led 99
