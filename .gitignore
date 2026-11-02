@@ -3,6 +3,7 @@
 !/.gitignore
 !/.gitattributes
 !/README.md
+!/Makefile
 !/crucible.toml
 !/crucible.lock
 !/rtl/
@@ -32,3 +33,5 @@
 **/SKILL.md
 **/GATES.md
 **/WORKLOG.md
+
+!/scripts/demo_info.py

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-unset CRUCIBLE_ENV
 mkdir -p build reports
 mode="${1:-rtl}"
 case "$mode" in identity|rtl|synth|mapped|route|pack|negative) ;; *) exit 2;; esac

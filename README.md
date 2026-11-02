@@ -2,6 +2,16 @@
 
 **Status: software verification passes; physical deployment is incomplete. No board or programmer was available.** The original goal includes programming a physical FPGA and observing its behavior. A simulated design and a generated bitstream do not satisfy that requirement. **Crucible is beta.**
 
+- [Quick start](#quick-start)
+- [How it works](#how-it-works)
+- [What runs](#what-runs)
+- [Repository layout](#repository-layout)
+- [Individual stages](#individual-stages)
+- [Results and controls](#results-and-controls)
+- [Troubleshooting](#troubleshooting)
+- [Reports and limits](#reports-and-limits)
+- [Licence](#licence)
+
 This candidate iCEstick design cycles through 0%, 25%, 50%, 75% and 100% PWM duty on red LED D1. Independent RTL and actual mapped-netlist simulation cover the full production sequence. Managed Yosys, nextpnr and IceStorm produce a routed, timing-checked, packed configuration. Behavioral, impossible-timing and configuration-bit controls test the verification guards.
 
 Read the [ten-page software-verification PDF](docs/FPGA_PWM_iCEstick_Software_Verification_Ignytion_A4.pdf) or [editable A4 PowerPoint](docs/FPGA_PWM_iCEstick_Software_Verification_Ignytion_A4.pptx). [Compact results](evidence/summary.json), [candidate board references](evidence/board.json), [official model identity](evidence/models.json) and [document hashes](evidence/documents.sha256.json) are included. Fresh runs regenerate local `build/` and `reports/`; those directories stay outside Git.
@@ -41,188 +51,127 @@ At a nominal 12 MHz clock, arithmetic predicts a 46.875 kHz carrier, 87.381333 m
 
 `pwm_demo` supports positive `STEP_PERIODS` values used here: 1, 2 and 4,096. The short core tests exercise the first two. Both full top simulations retain the real 4,096-period production configuration. They do not replace the counter with a faster implementation.
 
-## 1. Prerequisites and correct shell
+## Quick start
 
-Use Linux x86-64/WSL, Bash, Python 3, Git and an existing Crucible beta installation. Run all Bash commands from this repository root, where `crucible.toml`, `crucible.lock`, `rtl/`, `tests/`, `constraints/` and `scripts/` reside. PowerShell commands are labelled separately. No PDK, separate pip environment or board is required for the software stages. Native runtime dependencies must be available for the managed artifacts on the host.
+Open a Linux/WSL terminal in this repository root. Crucible is beta. Linux x86-64/WSL and an existing Crucible beta installation. No PDK, extra observer Python packages or physical board is needed for the software stages. The software target is iCEstick / iCE40HX1K / TQ144. Native runtime libraries and network access for initial managed-tool acquisition remain prerequisites.
 
-The lock pins Yosys 0.63.0, Icarus Verilog 14.0.0, nextpnr 0.10.0 and IceStorm 2026.04.03. The observed executables report Yosys 0.63+188 and nextpnr-0.10-22-gd6b4d3ed; the IceStorm package identity is recorded through the lock/checksum. Acquisition may download these archives on a new machine. Native Windows/macOS/ARM acquisition and an independent clean-machine reproduction have not been demonstrated.
-
-## 2. Restore and inspect the managed environment
-
-Linux/WSL Bash:
-
-```bash
+```sh
 igny init
-unset CRUCIBLE_ENV
-igny --version
 igny workspace sync
-igny status
-igny env show fpga-demo
-igny tool show yosys --env fpga-demo
-igny tool show iverilog --env fpga-demo
-igny tool show nextpnr --env fpga-demo
-igny tool show icepack --env fpga-demo
-igny tool show iceunpack --env fpga-demo
-python3 --version
-bash scripts/run.sh identity
-cat reports/tool_versions.txt
+igny tool install make --version 4.4.1 --env fpga-demo
+igny run --env fpga-demo make setup
+igny run --env fpga-demo make check
 ```
 
-`igny init` initializes the outer workbench shell. `unset` removes an inherited environment override. `workspace sync` acquires missing locked tools and restores the named environment; it does not build this design or provide USB hardware access. `icepack` and `iceunpack` belong to `icestorm`. The catalogued binary `nextpnr` resolves to the iCE40 executable in this package; do not substitute an uncatalogued `nextpnr-ice40` command.
+This release is software-verified. No board/programmer was available. Pin/clock/LED/startup behaviour must still be measured on an actual confirmed board; a packed configuration is not physical deployment.
 
-Stop on an acquisition, runtime or binding error and inspect the diagnostic. Version output alone does not verify the design. The existing workspace marker and lock are supplied: do not create another workspace over them. Every flow invocation selects `fpga-demo` explicitly. Some tools return nonzero for help/usage requests; that is not a design result.
+Run the complete experiment after satisfying those prerequisites:
 
-## 3. Run every software stage in order
-
-Linux/WSL Bash, after step 2:
-
-```bash
-bash scripts/run.sh rtl
-bash scripts/run.sh synth
-bash scripts/run.sh mapped
-bash scripts/run.sh route
-bash scripts/run.sh pack
-bash scripts/run.sh negative
-python3 scripts/verify.py
+```sh
+igny run --env fpga-demo make run
 ```
 
-| Stage | Actual work | Principal output / expected result |
-|---|---|---|
-| `identity` | Record managed versions and actual Yosys resolution | `reports/tool_versions.txt`; `PWM_MANAGED_TOOLS_RECORDED` |
-| `rtl` | Run both short core configurations and the complete production top | `reports/core_1.log`, `core_2.log`, `top_rtl.log`; positive markers below |
-| `synth` | Map the real production RTL, check the result, copy/hash unchanged official cells | `build/fpga.json`, `build/mapped.v`, `build/cells_sim.v`; `PWM_REAL_ICE40_SYNTHESIS_COMPLETED` |
-| `mapped` | Run the same full top observer against the actual mapped netlist | `reports/top_mapped.log`; identical comparison and stage totals |
-| `route` | HX1K/TQ144 placement/routing, exact PCF, seed 1, 12 MHz clock | `build/fpga.asc`, `reports/route.json`; `PWM_REAL_ICE40_PLACEMENT_ROUTING_COMPLETED` |
-| `pack` | Pack, unpack, compare configuration records and repack | `build/fpga.bin`, `unpacked.asc`, `repacked.bin`; `PWM_BITSTREAM_UNPACK_REPACK_BYTES_IDENTICAL` |
-| `negative` | Run broken duty fixture, impossible timing target and actual one-bit packed/decoded mutation | Negative logs/exit files; `PWM_BEHAVIORAL_TIMING_AND_CONFIGURATION_CONTROLS_REJECTED` |
-| `verify.py` | Check actual results, causal controls, tool/config/source identities and explicit open hardware state | `reports/summary.json`; verification and incomplete-deployment markers below |
+Every executable example in this guide goes through Igny. Make delegates to the supplied stage scripts and observers; failed stages stop the workflow. Make 4.4.1 is installed separately from the existing engineering-tool lock. The setup target only checks Python standard-library availability. The check target checks observer imports; it does not qualify a PDK or native-library installation.
 
-The stages depend on earlier outputs: `synth` needs recorded identity, `mapped` needs synthesis/models, `route` needs synthesis, `pack` needs the route, and `negative` needs the positive route. The final observer requires every stage. Each stage records current input hashes and its process exit status. Changing a source, test, runner, model or constraint invalidates the affected evidence; rerun the affected stage and all dependent stages.
+## How it works
 
-The full top tests simulate more than five million clock cycles each. Allow them to finish; they do not print a PASS until the full production sequence and wrap have been checked. The testbench's time scale is a functional simulation scale and does not replace the physical 12 MHz route constraint.
+The production design cycles through all five PWM duty settings with its real stage duration. Independent RTL and mapped simulations check complete periods. Routing uses the actual package pins and a 12 MHz constraint. Packing is checked by decoded configuration comparison and byte-identical repacking; these checks do not substitute for hardware observations.
 
-## 4. Inspect the actual results
-
-Linux/WSL Bash:
-
-```bash
-cat reports/core_1.log
-cat reports/core_2.log
-cat reports/top_rtl.log
-cat reports/top_mapped.log
-tail -n 25 reports/synthesis.log
-cat reports/models.json
-cat reports/route.json
-tail -n 25 reports/route.log
-python3 scripts/bitstream.py
-sha256sum build/fpga.bin build/repacked.bin
-cat reports/broken.log
-cat reports/broken_exit.txt
-tail -n 20 reports/impossible.log
-cat reports/impossible_exit.txt
-cat reports/configuration_negative.log
-cat reports/configuration_negative_exit.txt
-cat reports/summary.json
+```mermaid
+flowchart LR
+    R[Production RTL PWM sequence] --> I[Independent cycle / whole-period simulation]
+    R --> Y[Yosys actual iCE40 mapped design]
+    Y --> M[Mapped-netlist simulation with official cells]
+    Y --> N[nextpnr HX1K routing and 12 MHz timing]
+    N --> P[IceStorm pack / decode / byte-identical repack]
+    I --> V[Observer and behavioural / timing / configuration controls]
+    M --> V
+    P --> V
+    V --> H[Physical programming and observations remain pending]
 ```
 
-Both core tests must print `PWM_CORE_PASS cycles=10120 checks=10155 full_periods=35`. Both full top runs must print:
+## What runs
 
-```text
-PWM_TOP_PASS cycles=5243400 checks=5263881 full_periods=20481
-```
-
-Their per-stage counts must be 4,097 complete periods at zero duty and 4,096 at each other duty. The extra zero-duty period is checked after the sequence wraps. The observer computes expected output from elapsed cycles without reading DUT internal phase, stage, duty or counter state.
-
-The bitstream comparator requires `PWM_DECODED_CONFIGURATION_MATCH records=265`. It compares every logic/I/O/extra-bit record. Comments and symbol labels are excluded. [IceStorm's source](https://github.com/YosysHQ/icestorm/blob/main/icepack/icepack.cc) shows zero-initialized omitted RAM data; the comparator expands those defaults and retains all actual RAM bits. Repacked bytes must be identical. This does not establish post-route functional equivalence or physical loading.
-
-The broken fixture must fail at cycle 256, phase zero, duty zero, observed one and expected zero. The impossible target must report a final frequency `FAIL at 1000.00 MHz`. The packed/decoded one-bit mutation must produce `PWM_CONFIGURATION_MISMATCH`. All three negative processes must exit one. Their outer `negative` runner returns success only after checking those expected failures; a compile error or missing tool is not a successful control.
-
-The final observer prints both:
-
-```text
-PWM_SOFTWARE_SIMULATION_SYNTHESIS_ROUTE_TIMING_BITSTREAM_AND_CONTROLS_VERIFIED
-PHYSICAL_DEPLOYMENT_INCOMPLETE_NO_BOARD_OR_PROGRAMMER
-```
-
-The second marker preserves the unfinished physical requirement. Do not interpret a software PASS as a deployed-board PASS. Raw tool logs may contain local runtime paths and are intentionally ignored by Git.
-
-## 5. Troubleshooting
-
-| Symptom | Check and next action |
+| Component | Pinned version |
 |---|---|
-| No workspace/environment or missing binary | Check the root, `igny status`, locked bindings and the `tool show` commands; restore with `igny workspace sync` |
-| `nextpnr-ice40` is unavailable | Use the catalogued `igny run --env fpga-demo nextpnr` route in the runner |
-| Official model file missing | Run `identity` then `synth`; the helper resolves the pinned Yosys artifact and requires one unchanged model file |
-| Mapped simulation has unknown/unresolved cells | Inspect `reports/top_mapped_compile.log`; retain official cells and the supplied simulator flags |
-| Observer reports stale inputs | Rebuild the affected stage and dependents against current files; do not reuse an older success log |
-| ASC text differs after unpacking | Comments/symbols and explicit zero RAM defaults are normalized; any other configuration mismatch is a failure |
-| Impossible timing control passes | Inspect the actual 1,000 MHz target and final nextpnr error; do not enable timing-failure overrides |
-| No physical result | Hardware is absent; software work cannot remove the deployment requirement |
+| icestorm | 2026.04.03 |
+| iverilog | 14.0.0 |
+| nextpnr | 0.10.0 |
+| yosys | 0.63.0 |
 
-## 6. Open the reviewed whitepaper and inspect Git
+The lock restores those engineering tools; the setup target prepares only project-local observer dependencies where needed. Initial acquisition may require network access. Native Windows/macOS/ARM tool execution and independent clean-machine reproduction are not established by these results.
 
-Windows PowerShell, from this repository root:
+## Repository layout
 
-```powershell
-Invoke-Item .\docs\FPGA_PWM_iCEstick_Software_Verification_Ignytion_A4.pdf
-Invoke-Item .\docs\FPGA_PWM_iCEstick_Software_Verification_Ignytion_A4.pptx
-python scripts\preflight_git.py
+```text
+.
+|-- Makefile             Managed workflow entry points
+|-- crucible.toml        Workspace selection
+|-- crucible.lock        Engineering-tool identities
+|-- rtl/                 Production PWM engine and startup wrapper
+|-- constraints/         Actual package pins
+|-- tests/               Independent observers and deliberate behavioural fault
+|-- scripts/             Build, model provenance, bitstream comparison and verification
+|-- docs/                Reviewed PDF and editable PowerPoint
+|-- evidence/            Compact reviewed measurement snapshots
+`-- build/               Generated local artifacts; ignored by Git
 ```
 
-The preflight uses Python's standard library. It checks public candidate paths, links, whitespace, executable index modes, document hashes and selected credential/personal-path patterns. It does not run EDA tools or program hardware. The PDF is searchable; the PPTX is its exact reviewed editable source.
+## Individual stages
 
-Linux/WSL Bash, after reviewing the allowlisted content:
+Run these from the same prepared workspace. Stages use earlier outputs; execute them in the listed order when reproducing the flow manually. The run target performs the full ordered workflow.
 
-```bash
-git status --short
-git diff --check
-git add -- .
-git diff --cached --check
-python3 scripts/preflight_git.py
-git diff --cached --stat
-git diff --cached
-git branch --show-current
+| Managed command | Work performed |
+|---|---|
+| `igny run --env fpga-demo make identity` | Record actual tool/model providers |
+| `igny run --env fpga-demo make rtl` | Run both core configurations and the full production sequence |
+| `igny run --env fpga-demo make synth` | Map production RTL and retain unchanged official models |
+| `igny run --env fpga-demo make mapped` | Run the same independent full-top observer against the mapped design |
+| `igny run --env fpga-demo make route` | Place/route HX1K/TQ144 at 12 MHz, seed 1 |
+| `igny run --env fpga-demo make pack` | Pack, decode, compare all configuration records and repack |
+| `igny run --env fpga-demo make negative` | Reject broken zero-duty behaviour, impossible timing and a changed configuration bit |
+
+Inspect or recheck existing results without rebuilding:
+
+```sh
+igny run --env fpga-demo make smoke
+igny run --env fpga-demo make report
+igny run --env fpga-demo make help
 ```
 
-Require `GIT_PREFLIGHT_PASS`. The new candidate uses `demo/software-verified`; its README and whitepaper explicitly retain the open physical requirement. The runner must have index mode `100755`. If a Windows-created index needs that mode set:
+The smoke target validates existing generated evidence. It is not a new experiment run. The report target prints local summaries and fails if required results are absent. The sed target normalises only public shell inputs to LF; run invokes it automatically.
 
-```bash
-git update-index --chmod=+x scripts/run.sh
-python3 scripts/preflight_git.py
+## Results and controls
+
+Require PWM_SOFTWARE_SIMULATION_SYNTHESIS_ROUTE_TIMING_BITSTREAM_AND_CONTROLS_VERIFIED and retain PHYSICAL_DEPLOYMENT_INCOMPLETE_NO_BOARD_OR_PROGRAMMER. Both full top simulations check 5,243,400 cycles, 5,263,881 comparisons and 20,481 complete periods. The recorded bitstream is 32,220 bytes with 265 matching decoded records. The final nextpnr estimate is 191.35 MHz against 12 MHz; this is not a measured board frequency.
+
+Expected negative failures are handled by the existing runners/observers. Missing tools, compilation failures, timeouts and missing artifacts do not count as successful controls. Changing sources or inputs requires rerunning the affected stages and their dependents. Raw logs and generated runtime/PDK payloads remain local.
+
+## Troubleshooting
+
+| Symptom | Check / next action |
+|---|---|
+| Wrong workspace or missing tool | Open the terminal in the root containing crucible.toml; use the explicit project environment in this guide and restore the lock. |
+| Make is not bound | Repeat the managed Make installation in Quick start. |
+| Observer dependency is absent or changed | Repeat the managed setup target; retain the pinned requirements. |
+| Native library or PDK is missing | Supply the prerequisites described above. Lock restoration and observer setup do not provision them. |
+| Evidence is missing or stale | Run the full workflow or the affected stages in order. Preserve the reported failure instead of editing expected values. |
+| Negative control unexpectedly passes | Treat the guard as failed and inspect its artifacts. |
+
+## Reports and limits
+
+Read the [technical report](docs/FPGA_PWM_iCEstick_Software_Verification_Ignytion_A4.pdf) or its [editable PowerPoint](docs/FPGA_PWM_iCEstick_Software_Verification_Ignytion_A4.pptx). The documents record measured results and exclusions; source commands in this README are the current managed workflow.
+
+Physical programming, clock/duty/startup/reset observations and repeated power-cycle acceptance are pending. No programming target is provided. Post-route equivalence, SDF, other boards/corners and vendor signoff remain outside scope.
+
+Review the source/document package locally with:
+
+```sh
+igny run --env fpga-demo make preflight
 ```
 
-Do not force-add raw builds, bitstreams, logs, runtime payloads, personal configuration or agent/work notes. The compact evidence records the positive bitstream hash; regenerate it from the pinned source flow. No project-wide licence grant is invented; dependencies retain their own terms.
+This checks the public candidate and document hashes; it does not publish anything or rerun engineering verification.
 
-These are **manual commit/publication commands**, not commands already executed by this demonstration. Review the staged material and choose your author identity and public destination first:
+## Licence
 
-```bash
-git config user.name
-git config user.email
-git commit -m "Add software-verified iCEstick PWM demo with open hardware gate"
-git remote -v
-PUBLIC_REPOSITORY_URL='REPLACE_WITH_YOUR_PUBLIC_REPOSITORY_URL'
-git remote add origin "$PUBLIC_REPOSITORY_URL"
-git push -u origin HEAD
-```
-
-Replace the placeholder. Use `remote add` only if no `origin` exists; otherwise inspect `git remote get-url origin`. No script commits, changes remotes, pushes or publishes the project.
-
-## 7. Future physical deployment: conditional manual steps
-
-**Do not run this section without an actual confirmed iCEstick board and deliberate authorization to replace its SPI flash image. None of these hardware steps was executed.** Confirm board model/revision, HX1K/TQ144, pin mapping, supply/USB connection and host driver/permissions first. WSL USB pass-through is not configured or proven by this repository. Use the reviewed positive image, never a mutation or impossible-target scratch file.
-
-After rerunning software verification, compare `build/fpga.bin` with the bitstream SHA-256 in `reports/summary.json` and the reviewed snapshot. A changed image requires a fresh review. The candidate iCEstick's onboard FTDI path is described in the manufacturer guide. The following explicit manual command uses IceStorm's default SPI flash programming flow and overwrites the current flash image:
-
-```bash
-sha256sum build/fpga.bin
-igny tool show iceprog --env fpga-demo
-igny run --env fpga-demo iceprog build/fpga.bin
-```
-
-Record the actual board identity, exact image hash, programmer/tool identity, command, exit status and programming log. Then measure the clock and LED waveform across all five duty levels and the sequence wrap, and capture startup/configuration behavior over repeated power cycles. Record measured period/high time, not only a visual impression of brightness. Review physical failures and update evidence and whitepaper before marking deployment complete. No automated programming mode is provided.
-
-## Source layout and limits
-
-`rtl/` contains the PWM engine and startup wrapper. `tests/` contains independent cycle/whole-period observers and the deliberate inclusive-comparator bug. `constraints/` fixes the two actual package pins. `scripts/` contains the managed build runner, source provenance, official model selection, configuration comparison and final observer. `evidence/` retains the reviewed snapshot; fresh runs write local `reports/`.
-
-This demonstration does not establish physical deployment, observed clock/duty/startup/reset behavior, SDF simulation, post-route equivalence, other board/device/platform/tool configurations, environmental corners, vendor STA/signoff, ASIC layout or fabricated-silicon behavior. The original full project remains incomplete until physical acceptance is recorded.
+Dependencies retain their upstream licences and credit. This checkout has no project-wide licence grant; the owner must select the intended project licence before presenting it as an open-source release. No upstream endorsement is implied.
